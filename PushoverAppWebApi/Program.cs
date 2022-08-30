@@ -15,8 +15,20 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+app.MapPost("/SendNotification", async (
+    IHttpClientFactory _httpClientFactory,
+    string tokenKey,
+    string userKey,
+    string message) =>
+{
+    var httpRequestMessage = new HttpRequestMessage(
+        HttpMethod.Post,
+        $"https://api.pushover.net/1/messages.json?token={tokenKey}&user={userKey}&message={message}");
 
-app.MapControllers();
+    var httpClient = _httpClientFactory.CreateClient();
+    var httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
+
+    return httpResponseMessage.IsSuccessStatusCode ? Results.Ok() : Results.BadRequest();
+});
 
 app.Run();
